@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <p id="text_display">Loading ...</p>
+    <script src="bundle.js"></script>
+    <div id="main-div">
+      <!--- top left arc-->
+      <svg id="svg-main" width=230 height=230>
+        <path d="M 4 4 L 4 226 L 226 226 L 226 4 L 4 4" fill="white"
+              stroke="grey" stroke-width=2 />
+        <path fill="green"
+              d="M5,5 L115,5 A110, 110 1, 0,1 5,115 z"></path>
+      </svg>
+      <!--- top right arc-->
+      <svg class="pie" width=230 height=230>
+        <path d="M 4 4 L 4 226 L 226 226 L 226 4 L 4 4" fill="green"
+              stroke="grey" stroke-width=2 />
+        <path fill="white"
+              d="M225,5 L225,115 A110, 110 1, 0,1 115,5 z"></path>
+      </svg>
+      <!--- bottom right arc-->
+      <svg class="pie" width=230 height=230>
+        <path d="M 4 4 L 4 226 L 226 226 L 226 4 L 4 4" fill="white"
+              stroke="grey" stroke-width=2 />
+        <path fill="green"
+              d="M225,225 L115,225 A110, 110 1, 0,1 225,115 z"></path>
+      </svg>
+      <!--- bottom left arc-->
+      <svg class="pie" width=230 height=230>
+        <path d="M 4 4 L 4 226 L 226 226 L 226 4 L 4 4" fill="green"
+              stroke="grey" stroke-width=2 />
+        <path fill="white"
+              d="M5,225 L5,115 A110, 110 1, 0,1 115,225 z"></path>
+      </svg>
+    </div>
+  </body>
+</html>
