@@ -17,11 +17,147 @@ function setAttributes(element: SVGElement, values: {[key:string]: any}){
 
 
 // Create an SVG Element under the specified node:
-function createElement(root: Node, name: string, attributes: {[key:string]: any}): SVGElement {
+function createElement<K extends keyof SVGElementTagNameMap>(
+        root: Node, 
+        name: K,
+        attributes: {[key:string]: any}
+): SVGElementTagNameMap[K]{
+
     let result = document.createElementNS("http://www.w3.org/2000/svg", name);
     root.appendChild(result);
     setAttributes(result, attributes);
     return result;
+}
+
+
+interface Corner{
+
+}
+
+
+/**
+ * 
+ */
+interface Edge{
+
+}
+
+
+/**
+ * Cell of the board of the first type:
+ * Connection can be made between the top-left and bottom--right corners.
+ * 
+ */
+class Cell {
+
+    // Graphical element that contains the whole cell:
+    cell: SVGSVGElement;
+    // Graphical element that displays a neutral border around the cell:
+    border: SVGPathElement;
+    // Graphical element that displays the left corner (whether top or bottom):
+    leftCorner: SVGPathElement;
+    // Graphical element that displays the right corner (whether top or bottom):
+    rightCorner: SVGPathElement;
+
+    /**
+     * @param root Root element under which the cell is inserted.
+     * @param dimension Height and width of the cell.
+     * @param direction Whether the component represents a connection up or down.
+     * @param connected Whether the component is initially set to connect its two corners.
+     */
+    constructor(public root: HTMLElement, public dimension: number,
+                public direction: 'down'|'up', connected: boolean){
+
+        // SVG container:
+        this.cell = createElement(this.root, 'svg', {'width': dimension, 'height': dimension});
+
+        // Border, whose fill can also 
+        const dimborder = dimension - 4;
+        this.border = createElement(this.cell, 'path', {
+            'd': `M 4 4 L 4 ${dimborder} L ${dimborder} ${dimborder} L ${dimborder} 4 L 4 4`,
+            'stroke': 'grey',
+            'stroke-width': 2
+        });
+
+        // 
+        this.leftCorner = createElement(this.cell, 'path', {});
+        this.rightCorner = createElement(this.cell, 'path', {});
+
+        this.makeConnection(connected);
+    }
+
+    /**
+     * Connect or disconnect the corners of this Cell.
+     * @param connected Are the two corners of this cell connected.
+     */
+    makeConnection(connected: boolean){
+        if (this.direction == 'down'){
+            if (connected){
+                this.makeBottomLeft('green', 'white');
+            }
+            else{
+                this.makeTopLeft('white', 'green');
+            }
+        }
+        else {
+            if (connected){
+                this.makeTopLeft('green', 'white');
+            }
+            else{
+                this.makeBottomLeft('white', 'green');
+            }
+        }
+    }
+
+    /**
+     * Make the Cell appear with top-left and bottom-right corners.
+     * @param backGroundColor Color of the background.
+     * @param cornersColor Color of the corners.
+     */
+    makeTopLeft(backGroundColor: string, cornersColor: string) {
+        const middle = this.dimension / 2;
+        const cornermax = this.dimension - 5;
+    
+        // Update the background color:
+        setAttributes(this.border, {'fill': backGroundColor});
+
+        // Make the left corner appear at the top:
+        setAttributes(this.leftCorner, {
+            'fill': cornersColor,
+            'd': `M5,5 L${middle},5 A${middle}, ${middle} 1, 0,1 5,${middle} z`
+        });
+        
+        // Make the right corner appear at the bottom:
+        setAttributes(this.rightCorner, {
+            'fill': cornersColor,
+            'd': `M${cornermax},${cornermax} L${middle},${cornermax} A${middle}, ${middle} 1, 0,1 ${cornermax},${middle} z`
+        });
+    }
+
+    /**
+     * Make the Cell appear with bottom-left and top-right corners.
+     * @param backGroundColor Color of the background.
+     * @param cornersColor Color of the corners.
+     */
+    makeBottomLeft(backGroundColor: string, cornersColor: string) {
+        const middle = this.dimension / 2;
+        const cornermax = this.dimension - 5;
+    
+        // Update the background color:
+        setAttributes(this.border, {'fill': backGroundColor});
+
+        // Make the left corner appear at the bottom:
+        setAttributes(this.leftCorner, {
+            'fill': cornersColor,
+            'd': `M5,${cornermax} L5,${middle} A${middle}, ${middle} 1, 0,1 ${middle},${cornermax} z`
+        });
+        
+        // Make the right corner appear at the top:
+        setAttributes(this.rightCorner, {
+            'fill': cornersColor,
+            'd': `M${cornermax},5 L${cornermax},${middle} A${middle}, ${middle} 1, 0,1 ${middle},5 z`
+        });
+    }
 }
 
 
@@ -30,40 +166,40 @@ function createElement(root: Node, name: string, attributes: {[key:string]: any}
  */
 export class Board {
 
-    // The root element that this view is bound to:
-    root: HTMLElement;
+    //cells: Cell[][];
+    cell1: Cell;
+    cell2: Cell;
 
-    constructor(root: HTMLElement) {
-        this.root = root;
+    // TODO:
+    // - Complete the patterns
+    // - Extract methods
+    // - Parameterize the figures
+    // - Do a grid
+    // - Make switchable
+    // Look at
+    // https://github.com/lucabordo/little-game/blob/e3e697b410df032f24a0ecf8f8576a680cda8f0d/src/index.html
 
-        var cell = createElement(this.root, 'svg', {'width': 230, 'height': 230});
-        var border = createElement(cell, 'path', {
-            'd': "M 4 4 L 4 226 L 226 226 L 226 4 L 4 4",
-            'fill': 'white',
-            'stroke': 'grey',
-            'stroke-width': 2
-        });
-        var topLeft = createElement(cell, 'path', {
-            'fill': "green",
-            'd': "M5,5 L115,5 A110, 110 1, 0,1 5,115 z"
-        });
-    }
-
-    // Create an SVG Element under the SVG root element:
-    createElement(name: string): SVGElement{
-        let element = document.createElementNS("http://www.w3.org/2000/svg", name);
-        this.root.appendChild(element);
-        return element;
+    /**
+     * 
+     * @param root Root element that this view is bound to.
+     * @param squareCount Number of squares in each row and column of the board.
+     * @param squareDimension Height/width of each square of the board.
+     */
+    constructor(public root: HTMLElement, public squareCount: number, public squareDimension: number) {
+        //this.cells = null;
+        this.cell2 = new Cell(root, squareDimension, 'down', false);
+        this.cell2 = new Cell(root, squareDimension, 'down', true);
+        this.cell1 = new Cell(root, squareDimension, 'up', false);
+        this.cell1 = new Cell(root, squareDimension, 'up', true);
     }
 }
 
 
 window.onload = () => {
-    var svg = document.getElementById("main-div") as any;
+    const cellCount = 10;
 
-//    if (svg == null || !(svg instanceof SVGSVGElement)){
-  ////      alert("Can't get SVG root");
-    //}
-
-    var board = new Board(svg);
+    var mainDiv = document.getElementById("main-div") as any;
+    const cellSize = Math.min(100, Math.round(mainDiv.clientWidth / cellCount));
+    report(cellSize.toString());
+    var board = new Board(mainDiv, 10, cellSize);
 };
