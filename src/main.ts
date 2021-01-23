@@ -115,8 +115,9 @@ class Cell {
      * @param cornersColor Color of the corners.
      */
     makeTopLeft(backGroundColor: string, cornersColor: string) {
-        const middle = this.dimension / 2;
-        const cornermax = this.dimension - 5;
+        const start = 5;
+        const half = this.dimension / 2;
+        const end = this.dimension - start;
     
         // Update the background color:
         setAttributes(this.border, {'fill': backGroundColor});
@@ -124,13 +125,13 @@ class Cell {
         // Make the left corner appear at the top:
         setAttributes(this.leftCorner, {
             'fill': cornersColor,
-            'd': `M5,5 L${middle},5 A${middle}, ${middle} 1, 0,1 5,${middle} z`
+            'd': this._createCornerPath(start, start, half, start, start, half)
         });
         
         // Make the right corner appear at the bottom:
         setAttributes(this.rightCorner, {
             'fill': cornersColor,
-            'd': `M${cornermax},${cornermax} L${middle},${cornermax} A${middle}, ${middle} 1, 0,1 ${cornermax},${middle} z`
+            'd': this._createCornerPath(end, end, half, end, end, half)
         });
     }
 
@@ -140,8 +141,9 @@ class Cell {
      * @param cornersColor Color of the corners.
      */
     makeBottomLeft(backGroundColor: string, cornersColor: string) {
-        const middle = this.dimension / 2;
-        const cornermax = this.dimension - 5;
+        const start = 5;
+        const half = this.dimension / 2;
+        const end = this.dimension - start;
     
         // Update the background color:
         setAttributes(this.border, {'fill': backGroundColor});
@@ -149,14 +151,27 @@ class Cell {
         // Make the left corner appear at the bottom:
         setAttributes(this.leftCorner, {
             'fill': cornersColor,
-            'd': `M5,${cornermax} L5,${middle} A${middle}, ${middle} 1, 0,1 ${middle},${cornermax} z`
+            'd': this._createCornerPath(start, end, start, half, half, end)
         });
         
         // Make the right corner appear at the top:
         setAttributes(this.rightCorner, {
             'fill': cornersColor,
-            'd': `M${cornermax},5 L${cornermax},${middle} A${middle}, ${middle} 1, 0,1 ${middle},5 z`
+            'd': this._createCornerPath(end, start, end, half, half, start)
         });
+    }
+
+    /**
+     * Create the path that encodes a quarter-circle at one corner.
+     * The quarter circles we use all have the same pattern: 
+     * - start from the corner; 
+     * - line to next point clockwise; 
+     * - complete circle to the last point.
+     */
+    _createCornerPath(cornerx: number, cornery: number, nextx: number, nexty: number, 
+                      endx: number, endy: number): string{
+        const radius = this.dimension / 2;
+        return `M${cornerx} ${cornery} L${nextx} ${nexty} A${radius} ${radius} 1 0 1 ${endx} ${endy}`;
     }
 }
 
@@ -199,7 +214,7 @@ window.onload = () => {
     const cellCount = 10;
 
     var mainDiv = document.getElementById("main-div") as any;
-    const cellSize = Math.min(100, Math.round(mainDiv.clientWidth / cellCount));
+    const cellSize = Math.min(80, Math.round(mainDiv.clientWidth / cellCount));
     report(cellSize.toString());
     var board = new Board(mainDiv, 10, cellSize);
 };
