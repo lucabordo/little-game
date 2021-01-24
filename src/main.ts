@@ -87,14 +87,26 @@ class Cell {
         this.leftCorner = createElement(svgRoot, 'path', {});
         this.rightCorner = createElement(svgRoot, 'path', {});
 
-        this.makeConnection();
+        // Position the connection:
+        this.updateConnection();
+
+        // Wire a click listener to the whole cell surface:
+        let closure =  (e: MouseEvent) =>  this.onClick();
+        this.border.addEventListener('click',closure);
+        this.leftCorner.addEventListener('click',closure);
+        this.rightCorner.addEventListener('click',closure);
+    }
+
+    onClick(){
+        report(`ok ${this} ${this.x} ${this.y}`);
+        this.flip();
     }
 
     /**
      * Connect or disconnect the corners of this Cell.
      * @param connected Are the two corners of this cell connected.
      */
-    makeConnection(){
+    updateConnection(){
         if (this.direction == 'down'){
             if (this.connected){
                 this.makeBottomLeft('green', 'white');
@@ -115,7 +127,7 @@ class Cell {
 
     flip(){
         this.connected = !this.connected;
-        this.makeConnection();
+        this.updateConnection();
     }
 
     /**
@@ -222,13 +234,6 @@ export class Board {
                 this.cells[i][j] = cell;
             }
         }
-
-        this.cells[1][0].flip()
-        this.cells[5][5].flip()
-        this.cells[4][5].flip()
-        this.cells[2][3].flip()
-        this.cells[7][3].flip()
-        this.cells[8][6].flip()
     }
 }
 
