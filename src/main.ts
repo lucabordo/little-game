@@ -30,6 +30,14 @@ function createElement<K extends keyof SVGElementTagNameMap>(
 }
 
 
+/**
+ * 
+ */
+class Point{
+    constructor(public x: number, public y: number){}
+}
+
+
 interface Corner{
 
 }
@@ -50,8 +58,6 @@ interface Edge{
  */
 class Cell {
 
-    // Graphical element that contains the whole cell:
-    cell: SVGSVGElement;
     // Graphical element that displays a neutral border around the cell:
     border: SVGPathElement;
     // Graphical element that displays the left corner (whether top or bottom):
@@ -60,39 +66,37 @@ class Cell {
     rightCorner: SVGPathElement;
 
     /**
-     * @param root Root element under which the cell is inserted.
+     * @param svgRoot Root element under which the cells are inserted.
      * @param dimension Height and width of the cell.
      * @param direction Whether the component represents a connection up or down.
      * @param connected Whether the component is initially set to connect its two corners.
      */
-    constructor(public root: HTMLElement, public dimension: number,
-                public direction: 'down'|'up', connected: boolean){
+    constructor(public x: number, public y: number,
+                public svgRoot: SVGSVGElement, public dimension: number,
+                public direction: 'down'|'up', public connected: boolean){
 
-        // SVG container:
-        this.cell = createElement(this.root, 'svg', {'width': dimension, 'height': dimension});
-
-        // Border, whose fill can also 
+        // Border, whose fill color can also be switched:
         const dimborder = dimension - 4;
-        this.border = createElement(this.cell, 'path', {
-            'd': `M 4 4 L 4 ${dimborder} L ${dimborder} ${dimborder} L ${dimborder} 4 L 4 4`,
+        this.border = createElement(svgRoot, 'path', {
+            'd': this._createBorderPath(),
             'stroke': 'grey',
             'stroke-width': 2
         });
 
-        // 
-        this.leftCorner = createElement(this.cell, 'path', {});
-        this.rightCorner = createElement(this.cell, 'path', {});
+        // Corners, which can be moved top or left:
+        this.leftCorner = createElement(svgRoot, 'path', {});
+        this.rightCorner = createElement(svgRoot, 'path', {});
 
-        this.makeConnection(connected);
+        this.makeConnection();
     }
 
     /**
      * Connect or disconnect the corners of this Cell.
      * @param connected Are the two corners of this cell connected.
      */
-    makeConnection(connected: boolean){
+    makeConnection(){
         if (this.direction == 'down'){
-            if (connected){
+            if (this.connected){
                 this.makeBottomLeft('green', 'white');
             }
             else{
@@ -100,13 +104,18 @@ class Cell {
             }
         }
         else {
-            if (connected){
+            if (this.connected){
                 this.makeTopLeft('green', 'white');
             }
             else{
                 this.makeBottomLeft('white', 'green');
             }
         }
+    }
+
+    flip(){
+        this.connected = !this.connected;
+        this.makeConnection();
     }
 
     /**
@@ -161,6 +170,15 @@ class Cell {
         });
     }
 
+    _createBorderPath(): string{
+        const dim = this.dimension - 4;
+        const minx = this.x + 4, maxx = this.x + dim, miny = this.y + 4, maxy = this.y + dim;
+        var result = `M ${minx} ${miny} L ${minx} ${maxy} L ${maxx} ${maxy} ` + `
+                      L ${maxx} ${miny} L ${minx} ${miny}`;
+        report(result);
+        return result;
+    }
+
     /**
      * Create the path that encodes a quarter-circle at one corner.
      * The quarter circles we use all have the same pattern: 
@@ -170,8 +188,10 @@ class Cell {
      */
     _createCornerPath(cornerx: number, cornery: number, nextx: number, nexty: number, 
                       endx: number, endy: number): string{
+        const x = this.x, y = this.y;
         const radius = this.dimension / 2;
-        return `M${cornerx} ${cornery} L${nextx} ${nexty} A${radius} ${radius} 1 0 1 ${endx} ${endy}`;
+        return `M${cornerx + x} ${cornery + y} L${nextx + x} ${nexty + y} ` + 
+              ` A${radius} ${radius} 1 0 1 ${endx + x} ${endy + y}`;
     }
 }
 
@@ -181,40 +201,50 @@ class Cell {
  */
 export class Board {
 
-    //cells: Cell[][];
-    cell1: Cell;
-    cell2: Cell;
-
-    // TODO:
-    // - Complete the patterns
-    // - Extract methods
-    // - Parameterize the figures
-    // - Do a grid
-    // - Make switchable
-    // Look at
-    // https://github.com/lucabordo/little-game/blob/e3e697b410df032f24a0ecf8f8576a680cda8f0d/src/index.html
+    cells: Cell[][];
 
     /**
      * 
-     * @param root Root element that this view is bound to.
-     * @param squareCount Number of squares in each row and column of the board.
-     * @param squareDimension Height/width of each square of the board.
+     * @param svgRoot Root element that this view is bound to.
+     * @param cellCount Number of squares in each row and column of the board.
+     * @param cellDimension Height/width of each square of the board.
      */
-    constructor(public root: HTMLElement, public squareCount: number, public squareDimension: number) {
-        //this.cells = null;
-        this.cell2 = new Cell(root, squareDimension, 'down', false);
-        this.cell2 = new Cell(root, squareDimension, 'down', true);
-        this.cell1 = new Cell(root, squareDimension, 'up', false);
-        this.cell1 = new Cell(root, squareDimension, 'up', true);
+    constructor(public svgRoot: SVGSVGElement, public cellCount: number, public cellDimension: number) {
+        this.cells = new Array<Cell[]>(cellCount);
+        for (var i = 0; i < cellCount; ++i){
+            this.cells[i] = new Array<Cell>(cellCount);
+            for (var j = 0; j < cellCount; ++j){
+                const direction = ((i + j) % 2 == 0) ? 'down' : 'up';
+                var cell = new Cell(
+                    cellDimension * i, cellDimension * j, 
+                    svgRoot, cellDimension, direction, false
+                );
+                this.cells[i][j] = cell;
+            }
+        }
+
+        this.cells[1][0].flip()
+        this.cells[5][5].flip()
+        this.cells[4][5].flip()
+        this.cells[2][3].flip()
+        this.cells[7][3].flip()
+        this.cells[8][6].flip()
     }
 }
 
 
 window.onload = () => {
-    const cellCount = 10;
+    var mainDiv = document.getElementById("main-div");
+//    mainDiv.style.border = "thick solid #0000FF"; 
 
-    var mainDiv = document.getElementById("main-div") as any;
-    const cellSize = Math.min(80, Math.round(mainDiv.clientWidth / cellCount));
-    report(cellSize.toString());
-    var board = new Board(mainDiv, 10, cellSize);
+    const cellCount = 10;
+    const cellDimension = Math.round(mainDiv.clientWidth / cellCount);
+    const boardDimension = cellCount * cellDimension;
+
+    var svgRoot = createElement(mainDiv, 'svg', {
+        'width': boardDimension, 
+        'height': boardDimension,
+    });
+    report(cellDimension.toString());
+    var board = new Board(svgRoot, cellCount, cellDimension);
 };
