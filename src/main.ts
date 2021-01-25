@@ -1,6 +1,12 @@
 import { sayHello } from "./greet";
 
 
+const backgroundColor = 'white';
+const neutralColor = 'grey';
+//const player1Color = neutralColor;
+//const player2Color = 'red';
+
+
 function report(message: string) {
     const elt = document.getElementById("text_display");
     elt.innerText = message;
@@ -98,7 +104,7 @@ class Cell {
     }
 
     onClick(){
-        report(`ok ${this} ${this.x} ${this.y}`);
+//        report(`ok ${this} ${this.x} ${this.y}`);
         this.flip();
     }
 
@@ -109,18 +115,18 @@ class Cell {
     updateConnection(){
         if (this.direction == 'down'){
             if (this.connected){
-                this.makeBottomLeft('green', 'white');
+                this.makeBottomLeft(neutralColor, backgroundColor);
             }
             else{
-                this.makeTopLeft('white', 'green');
+                this.makeTopLeft(backgroundColor, neutralColor);
             }
         }
         else {
             if (this.connected){
-                this.makeTopLeft('green', 'white');
+                this.makeTopLeft(neutralColor, backgroundColor);
             }
             else{
-                this.makeBottomLeft('white', 'green');
+                this.makeBottomLeft(backgroundColor, neutralColor);
             }
         }
     }
@@ -187,7 +193,6 @@ class Cell {
         const minx = this.x + 4, maxx = this.x + dim, miny = this.y + 4, maxy = this.y + dim;
         var result = `M ${minx} ${miny} L ${minx} ${maxy} L ${maxx} ${maxy} ` + `
                       L ${maxx} ${miny} L ${minx} ${miny}`;
-        report(result);
         return result;
     }
 
@@ -242,14 +247,14 @@ window.onload = () => {
     var mainDiv = document.getElementById("main-div");
 //    mainDiv.style.border = "thick solid #0000FF"; 
 
-    const cellCount = 10;
-    const cellDimension = Math.round(mainDiv.clientWidth / cellCount);
+    const cellCount = 20;
+    const cellDimension = Math.round((mainDiv.clientWidth - 15) / cellCount);
     const boardDimension = cellCount * cellDimension;
 
     var svgRoot = createElement(mainDiv, 'svg', {
         'width': boardDimension, 
         'height': boardDimension,
     });
-    report(cellDimension.toString());
+    // report(cellDimension.toString());
     var board = new Board(svgRoot, cellCount, cellDimension);
 };
