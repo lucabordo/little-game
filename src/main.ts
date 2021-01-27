@@ -48,21 +48,46 @@ export class Board {
                 svgRoot, cellDimension, direction
             );
         });
-
-        // Wire event handling:
-        this.cells.forEach(
-            line => line.forEach(
-                cell => cell.subscribeToClick(this.onCellClick)
-            )
-        );
     }
 
-    /**
-     * Event handler for clicks on a cell.
-     */
-    onCellClick(cell: Cell){
-        console.log(';yeah');
-        cell.connected = !cell.connected;
+    changeCircleColor(x: number, y: number, color: string){
+
+    }
+}
+
+
+
+/**
+ * Event handler for clicks on a cell.
+ */
+function onCellClick(game: Game, cell: Cell){
+    if (cell.connected){
+        cell.connected = false;
+        // Do something
+    }
+    else{
+        cell.connected = true;
+        cell.leftColor = game.turn;
+        cell.rightColor = game.turn;
+    }
+    game.turn = (game.turn == 'red') ? 'green' : 'red' 
+}
+
+
+class Game{
+    // Current player:
+    turn: 'red'|'green';
+
+    constructor(board: Board){
+        this.turn = 'red';
+        
+        // Wire event handling:
+        let that = this; // TODO find a better fix for that ugliness
+        board.cells.forEach(
+            line => line.forEach(
+                cell => cell.subscribeToClick(cell => onCellClick(that, cell))
+            )
+        );
     }
 }
 
@@ -81,4 +106,5 @@ window.onload = () => {
     });
     // report(cellDimension.toString());
     var board = new Board(svgRoot, cellCount, cellDimension);
+    var game = new Game(board);
 };

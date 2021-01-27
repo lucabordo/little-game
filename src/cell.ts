@@ -87,7 +87,7 @@ export class Cell {
         this.rightCorner = createElement(svgRoot, 'path', {});
 
         // Position the connection:
-        this._updateConnection();
+        this._refresh();
 
         // Wire a click listener to the whole cell surface:
         let closure =  (e: MouseEvent) =>  this._notifyClick();
@@ -123,11 +123,26 @@ export class Cell {
         return this._leftColor;
     }
 
+    set leftColor(newColor: string){
+        console.log(newColor);
+        if (this._leftColor != newColor){
+            this._leftColor = newColor;
+            this._refresh();
+        }
+    }
+
     /**
      * Get the color of the right corner (in the graph sense, not display) of this cell. 
      */
     get rightColor(): string{
         return this._rightColor;
+    }
+
+    set rightColor(newColor: string){
+        if (this._rightColor != newColor){
+            this._rightColor = newColor;
+            this._refresh();
+        }
     }
 
     /**
@@ -143,18 +158,7 @@ export class Cell {
     set connected(v : boolean) {
         if (this._connected != v){
             this._connected = v;
-            this._updateConnection();
-        }
-    }
-
-    /**
-     * Set the colors of the corners (in the graph sense, not display) of this cell. 
-     */
-    setColors(leftColor: string, rightColor: string){
-        if (this._leftColor != leftColor || this._rightColor != this._rightColor){
-            this._leftColor = leftColor;
-            this._rightColor = rightColor;
-            this._updateConnection();
+            this._refresh();
         }
     }
 
@@ -162,8 +166,8 @@ export class Cell {
      * Connect or disconnect the corners of this Cell.
      * @param connected Are the two corners of this cell connected.
      */
-    _updateConnection(){
-        this._checkClassInvariant();
+    _refresh(){
+        //this._checkClassInvariant();
 
         if (this.direction == 'down'){
             if (this.connected){
