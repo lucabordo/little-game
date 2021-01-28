@@ -53,7 +53,7 @@ export class Board {
      * @param cellCount Number of squares in each row and column of the board.
      * @param cellDimension Height/width of each square of the board.
      */
-    constructor(public svgRoot: SVGSVGElement,
+    constructor(readonly svgRoot: SVGSVGElement,
                 public cellCount: number, public cellDimension: number) {
 
         // Create the array with alternative and properly connected cells:
@@ -72,15 +72,11 @@ export class Board {
 }
 
 
-
-var counter = 0;
-
 /**
  * Event handler for clicks on a cell.
  */
 function onCellClick(game: Game, cell: Cell){
-    counter += 1;
-    report(counter.toString());
+    report(defaultMessage);
     if (opposite(game.turn) == cell.leftColor || opposite(game.turn) == cell.rightColor){
         report(`Player ${game.turn} isn't allowed to play this cell.`);
         return;

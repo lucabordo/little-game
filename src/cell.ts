@@ -68,8 +68,8 @@ export class Cell {
      * @param connected Whether the component is initially set to connect its two corners.
      */
     constructor(public x: number, public y: number,
-                public svgRoot: SVGSVGElement, public dimension: number,
-                public direction: 'down'|'up'){
+                readonly svgRoot: SVGSVGElement, public dimension: number,
+                readonly direction: 'down'|'up'){
 
         // Initialize private fields:
         this._leftColor = neutralColor;
@@ -159,6 +159,7 @@ export class Cell {
      * @param connected Are the two corners of this cell connected.
      */
     _refresh(){
+        // TODO: revise this
         //this._checkClassInvariant();
 
         if (this.direction == 'down'){
