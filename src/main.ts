@@ -65,33 +65,6 @@ export class Board {
             );
         });
     }
-
-    changeCircleColor(x: number, y: number, color: string){
-
-    }
-}
-
-
-/**
- * Event handler for clicks on a cell.
- */
-function onCellClick(game: Game, cell: Cell){
-    report(defaultMessage);
-    if (opposite(game.turn) == cell.leftColor || opposite(game.turn) == cell.rightColor){
-        report(`Player ${game.turn} isn't allowed to play this cell.`);
-        return;
-    }
-
-    if (cell.connected){
-        cell.connected = false;
-        // Do something
-    }
-    else{
-        cell.connected = true;
-        cell.leftColor = game.turn;
-        cell.rightColor = game.turn;
-    }
-    game.turn = opposite(game.turn);
 }
 
 
@@ -106,9 +79,34 @@ class Game{
         let that = this; // TODO find a better fix for that ugliness
         board.cells.forEach(
             line => line.forEach(
-                cell => cell.subscribeToCellClick(cell => onCellClick(that, cell))
+                cell => cell.subscribeToCellClick(cell => that.onCellClick(cell))
             )
         );
+    }
+
+    /**
+     * Event handler for clicks on a cell.
+     */
+    onCellClick(cell: Cell){
+        report(defaultMessage);
+        const turn = this.turn;
+        const opponent = opposite(this.turn);
+
+        if (opposite(turn) == cell.leftColor || opposite(turn) == cell.rightColor){
+            report(`Player ${this.turn} isn't allowed to play this cell.`);
+            return;
+        }
+    
+        if (cell.connected){
+            cell.connected = false;
+            // Do something
+        }
+        else{
+            cell.connected = true;
+            cell.leftColor = turn;
+            cell.rightColor = turn;
+        }
+        this.turn = opposite(turn);
     }
 }
 
