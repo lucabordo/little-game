@@ -62,10 +62,11 @@ export class Cell {
     private _connected: boolean;
 
     /**
+     * @param x The x cooordinate in the grid - from 0 to cellCount
+     * @param y The y cooordinate in the grid - from 0 to cellCount
      * @param svgRoot Root element under which the cells are inserted.
      * @param dimension Height and width of the cell.
      * @param direction Whether the component represents a connection up or down.
-     * @param connected Whether the component is initially set to connect its two corners.
      */
     constructor(public x: number, public y: number,
                 readonly svgRoot: SVGSVGElement, public dimension: number,
@@ -116,7 +117,6 @@ export class Cell {
     }
 
     set leftColor(newColor: string){
-        console.log(newColor);
         if (this._leftColor != newColor){
             this._leftColor = newColor;
             this._refresh();
@@ -185,6 +185,20 @@ export class Cell {
     //#region Appearance
 
     /**
+     * X coordinate in the SVG element.
+     */
+    get svgx(): number{
+        return this.x * this.dimension;
+    }
+
+    /**
+     * Y coordinate in the SVG element.
+     */
+    get svgy(): number{
+        return this.y * this.dimension;
+    }
+
+    /**
      * Make the Cell appear with top-left and bottom-right corners.
      * NOTE display colors may display from the this._leftColor / this._rightColor
      * as the quatter-circles used for display may be flipped when connected.
@@ -238,7 +252,7 @@ export class Cell {
 
     _createBorderPath(): string{
         const dim = this.dimension - 4;
-        const minx = this.x + 4, maxx = this.x + dim, miny = this.y + 4, maxy = this.y + dim;
+        const minx = this.svgx + 4, maxx = this.svgx + dim, miny = this.svgy + 4, maxy = this.svgy + dim;
         var result = `M ${minx} ${miny} L ${minx} ${maxy} L ${maxx} ${maxy} ` + `
                       L ${maxx} ${miny} L ${minx} ${miny}`;
         return result;
@@ -249,7 +263,7 @@ export class Cell {
      */
     _createSquarePath(): string{
         const dim = this.dimension - 4;
-        const minx = this.x + 4, maxx = this.x + dim, miny = this.y + 4, maxy = this.y + dim;
+        const minx = this.svgx + 4, maxx = this.svgx + dim, miny = this.svgy + 4, maxy = this.svgy + dim;
         var result = `M ${minx} ${miny} L ${minx} ${maxy} L ${maxx} ${maxy} ` + `
                       L ${maxx} ${miny} L ${minx} ${miny}`;
         return result;
@@ -264,7 +278,7 @@ export class Cell {
      */
     _createCornerPath(cornerx: number, cornery: number, nextx: number, nexty: number, 
                       endx: number, endy: number): string{
-        const x = this.x, y = this.y;
+        const x = this.svgx, y = this.svgy;
         const radius = this.dimension / 2;
         return `M${cornerx + x} ${cornery + y} L${nextx + x} ${nexty + y} ` + 
               ` A${radius} ${radius} 1 0 1 ${endx + x} ${endy + y}`;
