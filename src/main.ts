@@ -1,4 +1,4 @@
-import { Cell, createElement } from "./cell";
+import { Cell, createElement, neutralColor } from "./cell";
 
 const defaultMessage = "This place may be used for some debug display.";
 
@@ -34,11 +34,6 @@ function report(message: string){
 }
 
 
-function opposite(color: 'red'|'green'){
-    return (color == 'red') ? 'green' : 'red';
-}
-
-
 /**
  * Main Grid of elements capturing the state of the game.
  */
@@ -69,8 +64,12 @@ class Game{
     // Current player:
     turn: 'red'|'green';
 
+    // Counter of turns; a pretty poor way to distinguish the start of the game:
+    counter: number;
+
     constructor(readonly board: Board){
         this.turn = 'red';
+        this.counter = 0;
         
         // Wire event handling:
         let that = this; // TODO find a better fix for that ugliness
@@ -79,32 +78,51 @@ class Game{
                 cell => cell.subscribeToCellClick(cell => that.onCellClick(cell))
             )
         );
+
+        this._changeCornerColor(board.cellCount - 1, ~~(board.cellCount / 2), 'green', 'right');
+        this._changeCornerColor(0, ~~(board.cellCount / 2), 'red', 'left');
     }
 
     /**
      * Event handler for clicks on a cell.
      */
     onCellClick(cell: Cell){
-        // TODO: The color propagated is NOT this.turn in general
-
         report(defaultMessage);
-        const opponent = opposite(this.turn);
+        var color = neutralColor;
 
-        if (opponent == cell.leftColor || opponent == cell.rightColor){
-            report(`Player ${this.turn} isn't allowed to play this cell.`);
-            return;
+        if (cell.leftColor == 'red'){
+            color = 'red';
+            if (cell.rightColor == 'green'){
+                throw 'This shouldnt happen';
+            }
+            if (this.turn == 'green'){
+                report(`Player ${this.turn} isn't allowed to play this cell.`);
+                return;    
+            }
+        }
+        if (cell.rightColor == 'green'){
+            color = 'green';
+            if (cell.leftColor == 'red'){
+                throw 'This shouldnt happen';
+            }
+            
+            if (this.turn == 'red'){
+                report(`Player ${this.turn} isn't allowed to play this cell.`);
+                return;    
+            }
         }
 
         cell.connected = !cell.connected;
-        cell.leftColor = this.turn;
-        cell.rightColor = this.turn;
-        this._changeNeighbors(cell, this.turn, 'left');
-        this._changeNeighbors(cell, this.turn, 'right');
-        this.turn = opponent;
+        cell.leftColor = color;
+        cell.rightColor = color;
+        this._changeNeighbors(cell, color, 'left');
+        this._changeNeighbors(cell, color, 'right');
+
+        this.turn = (this.turn === 'green') ? 'red' : 'green';
+        this.counter++;
     }
 
-    _changeCornerColor(x: number, y: number, color: 'red'|'green', corner: 'left'|'right'){
-        console.log(`Corner ${x} ${y} ${corner}`);
+    _changeCornerColor(x: number, y: number, color: string, corner: 'left'|'right'){
         if (0 <= x && x < this.board.cellCount && 0 <= y && y < this.board.cellCount){
             var cell = this.board.cells[x][y];
 
@@ -129,7 +147,7 @@ class Game{
         }
     }
 
-    _changeNeighbors(cell: Cell, color: 'red'|'green', corner: 'left'|'right'){
+    _changeNeighbors(cell: Cell, color: string, corner: 'left'|'right'){
         console.log(`neigh ${cell.x} ${cell.y} ${corner}`);
         if (cell.direction === 'down'){
             if (corner === 'left'){
