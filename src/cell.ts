@@ -36,6 +36,14 @@ export function createElement<K extends keyof SVGElementTagNameMap>(
 
 
 /**
+ * Type of Event listeners that react to Clicks on various SVG parts. 
+ */
+interface CellClickListener {
+    (cell: Cell): void;
+}
+
+
+/**
  * Cell of the board.
  */
 export class Cell {
@@ -48,9 +56,6 @@ export class Cell {
     leftCorner: SVGPathElement;
     // Graphical element that displays the right corner (whether top or bottom):
     rightCorner: SVGPathElement;
-
-    // Event handlers for click events:
-    private _clickSubscribers: { (cell: Cell): void; } [];
 
     private _leftColor: string;
     private _rightColor: string;
@@ -70,9 +75,6 @@ export class Cell {
         this._leftColor = neutralColor;
         this._rightColor = neutralColor;
         this._connected = false;
-        this._clickSubscribers = []
-
-        console.log(`INIT ${this._leftColor} ${this._rightColor}`);
 
         // Border, whose fill color can also be switched:
         const dimborder = dimension - 4;
@@ -88,12 +90,6 @@ export class Cell {
 
         // Position the connection:
         this._refresh();
-
-        // Wire a click listener to the whole cell surface:
-        let closure =  (e: MouseEvent) =>  this._notifyClick();
-        this.border.addEventListener('click',closure);
-        this.leftCorner.addEventListener('click',closure);
-        this.rightCorner.addEventListener('click',closure);
     }
 
     _checkClassInvariant(){
@@ -104,15 +100,11 @@ export class Cell {
 
     //#endregion
 
-    ////#region Interaction with the Cell
+    //#region Interaction with the Cell
 
-    subscribeToClick(subscriber: (cell: Cell) => void){
-        this._clickSubscribers.push(subscriber);
-    }
-
-    _notifyClick(){
-        this._clickSubscribers.forEach(subscriber => {
-            subscriber(this);
+    subscribeToCellClick(listener: CellClickListener){
+        [this.border, this.leftCorner, this.rightCorner].forEach(element => {
+            element.addEventListener('click', _e => listener(this));
         });
     }
 

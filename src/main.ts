@@ -1,5 +1,7 @@
 import { Cell, createElement } from "./cell";
 
+const defaultMessage = "This place may be used for some debug display.";
+
 
 /**
  * Create an old-fashioned jagged array, using old-fashioned code;
@@ -9,7 +11,7 @@ import { Cell, createElement } from "./cell";
  * @param rows Number of rows.
  * @param init Function used to specify the content.
  */
-export function array2d<T>(cols: number, rows: number, init: (x: number, y: number) => T): T[][]{
+function array2d<T>(cols: number, rows: number, init: (x: number, y: number) => T): T[][]{
     var result = new Array<T[]>(cols);
 
     for (var x = 0; x < cols; ++x){
@@ -20,6 +22,20 @@ export function array2d<T>(cols: number, rows: number, init: (x: number, y: numb
     }
 
     return result;
+}
+
+
+/**
+ * Report a message, visible to the user.
+ */
+function report(message: string){
+    var elt = document.getElementById('text_display');
+    elt.innerText = message;
+}
+
+
+function opposite(color: 'red'|'green'){
+    return (color == 'red') ? 'green' : 'red';
 }
 
 
@@ -57,10 +73,19 @@ export class Board {
 
 
 
+var counter = 0;
+
 /**
  * Event handler for clicks on a cell.
  */
 function onCellClick(game: Game, cell: Cell){
+    counter += 1;
+    report(counter.toString());
+    if (opposite(game.turn) == cell.leftColor || opposite(game.turn) == cell.rightColor){
+        report(`Player ${game.turn} isn't allowed to play this cell.`);
+        return;
+    }
+
     if (cell.connected){
         cell.connected = false;
         // Do something
@@ -70,7 +95,7 @@ function onCellClick(game: Game, cell: Cell){
         cell.leftColor = game.turn;
         cell.rightColor = game.turn;
     }
-    game.turn = (game.turn == 'red') ? 'green' : 'red' 
+    game.turn = opposite(game.turn);
 }
 
 
@@ -85,7 +110,7 @@ class Game{
         let that = this; // TODO find a better fix for that ugliness
         board.cells.forEach(
             line => line.forEach(
-                cell => cell.subscribeToClick(cell => onCellClick(that, cell))
+                cell => cell.subscribeToCellClick(cell => onCellClick(that, cell))
             )
         );
     }
@@ -107,4 +132,5 @@ window.onload = () => {
     // report(cellDimension.toString());
     var board = new Board(svgRoot, cellCount, cellDimension);
     var game = new Game(board);
+    report(defaultMessage);
 };
