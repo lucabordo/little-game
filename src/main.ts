@@ -179,7 +179,7 @@ class Game{
 
 window.onload = () => {
     var mainDiv = document.getElementById("main-div");
-//    mainDiv.style.border = "thick solid #0000FF"; 
+    // mainDiv.style.border = "thick solid #0000FF"; 
 
     const cellCount = 20;
     const cellDimension = Math.round((mainDiv.clientWidth - 15) / cellCount);
